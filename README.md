@@ -1,5 +1,8 @@
 # NoiseCloud 2.0
 
+> **S6 fork note:** this repository is an S6 Security Labs fork of Lucas Ferraz's original NoiseCloud project. Upstream remains <https://github.com/unlucas-br/noisecloud>. S6-specific next-generation DLP lab work is documented in [docs/S6_NEXTGEN.md](docs/S6_NEXTGEN.md), including the planned S6 envelope, optional passphrase encryption, stronger integrity reporting, and slideshow/cover-video carrier modes.
+
+
 <div align="center">
 
 <pre>
