@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>S6 NoiseCloud Next v2 | DLP Lab</title>
+  <style>
+    :root{color-scheme:dark;--bg:#04070a;--panel:#0c1318;--line:#21343d;--text:#f1fbff;--muted:#a7bac0;--cyan:#7ee7ff;--lime:#9effc7;--warn:#ffc857;--bad:#ff7070}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 10% 0,#12394a 0,#04070a 42%,#020304 100%);font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;color:var(--text)}.wrap{width:min(1160px,calc(100% - 28px));margin:0 auto;padding:34px 0 60px}.eyebrow{font:800 12px ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--cyan);text-transform:uppercase;letter-spacing:.14em}h1{font-size:clamp(34px,7vw,74px);line-height:.92;margin:14px 0 18px;letter-spacing:-.06em}.lede{max-width:900px;color:#c9d8dc;font-size:18px;line-height:1.55}.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:26px}.card{border:1px solid var(--line);background:linear-gradient(180deg,#10202ad9,#071014d9);border-radius:28px;padding:24px;box-shadow:0 18px 70px #0008}.card h2{margin:0 0 10px}.card p,.card li{color:#bfd0d6;line-height:1.5}.drop{border:1px dashed #7ee7ff66;border-radius:20px;background:#7ee7ff0b;padding:18px;display:grid;gap:12px}input,select{width:100%;padding:12px;border-radius:12px;background:#020609;border:1px solid var(--line);color:var(--text)}button{border:0;border-radius:14px;background:var(--cyan);color:#021015;font-weight:900;padding:13px 16px;cursor:pointer}button:disabled{filter:grayscale(1);opacity:.45;cursor:not-allowed}.status{white-space:pre-wrap;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;color:#e4fbff;background:#0008;border:1px solid #ffffff12;border-radius:16px;padding:14px;min-height:92px;overflow:auto}.warning{border-color:#ffc85766;background:#ffc85712}.full{grid-column:1/-1}.pill{display:inline-block;border:1px solid #7ee7ff47;border-radius:999px;padding:6px 9px;color:var(--cyan);font:800 11px ui-monospace,SFMono-Regular,Menlo,monospace;text-transform:uppercase;margin:4px 6px 4px 0}.video{width:100%;margin-top:12px;border-radius:16px;border:1px solid var(--line);background:#000}a{color:var(--lime)}@media(max-width:860px){.grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+<main class="wrap">
+  <div class="eyebrow">S6 DLP Test Site · NoiseCloud Next v2</div>
+  <h1>S6 NoiseCloud Next</h1>
+  <p class="lede">A next-generation defensive media-carrier lab built from the S6 fork of NoiseCloud. V2 adds an S6NC1 envelope, SHA-256 verification, optional passphrase encryption, and slideshow-sideband video mode. The payload is still in video frames, not audio.</p>
+  <div><span class="pill">S6NC1 envelope</span><span class="pill">AES-256-GCM optional</span><span class="pill">SHA-256 verified</span><span class="pill">slideshow sideband</span><span class="pill">2 MiB / 50 MiB caps</span></div>
+  <section class="grid">
+    <div class="card">
+      <h2>1. Encode file to S6NC v2 MP4</h2>
+      <div class="drop">
+        <input id="encodeFile" type="file" />
+        <input id="encodePass" type="password" placeholder="Optional passphrase for AES-GCM encryption" />
+        <select id="coverMode">
+          <option value="slideshow-sideband">Slideshow sideband mode</option>
+          <option value="noise">Original NoiseCloud visual carrier</option>
+        </select>
+        <button id="encodeBtn">Generate S6NC v2 MP4</button>
+      </div>
+      <video id="preview" class="video" controls hidden></video>
+      <p><a id="downloadMp4" hidden download="s6nc-v2.mp4">Download generated MP4</a></p>
+      <div id="encodeStatus" class="status">Waiting for file.</div>
+    </div>
+    <div class="card">
+      <h2>2. Decode and verify</h2>
+      <div class="drop">
+        <input id="decodeFile" type="file" accept="video/mp4,.mp4" />
+        <input id="decodePass" type="password" placeholder="Passphrase if encrypted" />
+        <select id="decodeMode">
+          <option value="auto">Auto detect sideband/noise</option>
+          <option value="slideshow-sideband">Force slideshow sideband</option>
+          <option value="noise">Force original carrier</option>
+        </select>
+        <button id="decodeBtn">Decode S6NC v2 MP4</button>
+      </div>
+      <p><a id="downloadRecovered" hidden download="s6nc-recovered.bin">Download recovered file</a></p>
+      <div id="decodeStatus" class="status">Waiting for MP4.</div>
+    </div>
+    <div class="card warning full">
+      <h2>What changed from v1?</h2>
+      <ul>
+        <li>Original lab: raw upstream NoiseCloud MP4 carrier.</li>
+        <li>V2: payload is wrapped in S6NC1 before encoding, with filename, MIME, size, SHA-256, and optional AES-GCM encryption.</li>
+        <li>Slideshow sideband mode creates a visible slideshow/test-pattern video and preserves the carrier in a right-side video panel for reliable decoding.</li>
+        <li>Fork: <a href="https://github.com/s6securitylabs/noisecloud">github.com/s6securitylabs/noisecloud</a>. Upstream remains <a href="https://github.com/unlucas-br/noisecloud">github.com/unlucas-br/noisecloud</a>.</li>
+      </ul>
+    </div>
+  </section>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+function setStatus(id, text, bad=false){ const el=$(id); el.textContent=text; el.style.borderColor = bad ? '#ff7070aa' : '#ffffff12'; }
+async function postFile(endpoint, file, fields){ const fd=new FormData(); fd.append('file', file); for(const [k,v] of Object.entries(fields||{})) fd.append(k,v); const res=await fetch(endpoint,{method:'POST',body:fd}); const blob=await res.blob(); if(!res.ok) throw new Error(await blob.text()); return {res, blob}; }
+function metaFromHeader(res){ const h=res.headers.get('X-S6NC-Meta'); if(!h) return ''; try { return JSON.stringify(JSON.parse(atob(h.replace(/-/g,'+').replace(/_/g,'/'))), null, 2); } catch { return h; } }
+$('encodeBtn').onclick = async () => { const file=$('encodeFile').files[0]; if(!file) return setStatus('encodeStatus','Choose a file first.',true); $('encodeBtn').disabled=true; setStatus('encodeStatus',`Encoding ${file.name} (${file.size} bytes)...`); try { const {res,blob}=await postFile('/api/noisecloud-v2/encode',file,{passphrase:$('encodePass').value,coverMode:$('coverMode').value}); const url=URL.createObjectURL(blob); $('preview').src=url; $('preview').hidden=false; $('downloadMp4').href=url; $('downloadMp4').download=`${file.name}.s6nc-v2.mp4`; $('downloadMp4').hidden=false; setStatus('encodeStatus',`Encoded ${blob.size} bytes\n${metaFromHeader(res)}`); } catch(e){ setStatus('encodeStatus',String(e.message||e),true); } finally { $('encodeBtn').disabled=false; } };
+$('decodeBtn').onclick = async () => { const file=$('decodeFile').files[0]; if(!file) return setStatus('decodeStatus','Choose an MP4 first.',true); $('decodeBtn').disabled=true; setStatus('decodeStatus',`Decoding ${file.name} (${file.size} bytes)...`); try { const {res,blob}=await postFile('/api/noisecloud-v2/decode',file,{passphrase:$('decodePass').value,coverMode:$('decodeMode').value}); const url=URL.createObjectURL(blob); const name=decodeURIComponent(res.headers.get('X-S6NC-Filename')||'s6nc-recovered.bin'); $('downloadRecovered').href=url; $('downloadRecovered').download=name; $('downloadRecovered').hidden=false; setStatus('decodeStatus',`Verified: ${res.headers.get('X-S6NC-Verified')}\nRecovered bytes: ${res.headers.get('X-S6NC-Recovered-Bytes')}\nSHA-256: ${res.headers.get('X-S6NC-Plaintext-SHA256')}\nEncrypted: ${res.headers.get('X-S6NC-Encrypted')}`); } catch(e){ setStatus('decodeStatus',String(e.message||e),true); } finally { $('decodeBtn').disabled=false; } };
+</script>
+</body>
+</html>
